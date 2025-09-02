@@ -1,0 +1,9 @@
+{
+    "Internal server error": "خطای سمت سرور",
+    "Paid": "پرداخت شده",
+    "Unpaid": "پرداخت نشده",
+    "settlements_pending": "در حال بررسی",
+    "settlements_rejected": "رد شده",
+    "settlements_done": "انجام شده",
+    "settlements_canceled": "لغو شده"
+}

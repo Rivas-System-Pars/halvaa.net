@@ -1,0 +1,6 @@
+{
+    "settlements_pending": "Pending",
+    "settlements_rejected": "Rejected",
+    "settlements_done": "Done",
+    "settlements_canceled": "Canceled"
+}
