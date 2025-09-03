@@ -28,16 +28,20 @@ class RegisterRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255', new NotSpecialChar()],
             'last_name' => ['required', 'string', 'max:255', new NotSpecialChar()],
             'username' => ['required', 'string', 'max:191', 'alpha_num', 'unique:users'],
-            'phone_number' => ['required', 'regex:/^09\d{9}$/', 'unique:users'],
+            'phone_number' => ['required', 'regex:/^09\d{9}$/',],
             'national_code' => ['nullable', 'regex:/^\d{10}$/'],
             'birth' => ['required', 'date', 'before:today'],
             'death' => ['required', 'date', 'after:birth'],
             'birth_city_id' => ['nullable', 'integer', 'exists:cities,id'],
             'death_city_id' => ['nullable', 'integer', 'exists:cities,id'],
-    'password' => [
-        'required', 'string', 'min:8', 'confirmed',
-        'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/', // حداقل یک حرف و یک عدد
-    ],            'captcha' => ['required', 'captcha'],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/', // حداقل یک حرف و یک عدد
+            ],
+            'captcha' => ['required', 'captcha'],
             'is_private' => ['nullable', 'in:1'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'latitude' => ['nullable', 'string'],
@@ -62,7 +66,7 @@ class RegisterRequest extends FormRequest
 
             'phone_number.required' => 'لطفا شماره موبایل معتبر وارد کنید',
             'phone_number.regex' => 'فرمت شماره موبایل صحیح نیست (مثال: 09123456789)',
-            'phone_number.unique' => 'این شماره موبایل قبلا ثبت شده است',
+            // 'phone_number.unique' => 'این شماره موبایل قبلا ثبت شده است',
 
             'national_code.required' => 'کد ملی الزامی است',
             'national_code.regex' => 'کد ملی باید 10 رقم باشد',
@@ -75,7 +79,7 @@ class RegisterRequest extends FormRequest
             'death.date' => 'تاریخ فوت باید یک تاریخ معتبر باشد',
             'death.after' => 'تاریخ فوت باید بعد از تاریخ تولد باشد',
 
-    'password.regex' => 'رمز عبور باید شامل حداقل یک حرف و یک عدد باشد.',
+            'password.regex' => 'رمز عبور باید شامل حداقل یک حرف و یک عدد باشد.',
 
 
         ];

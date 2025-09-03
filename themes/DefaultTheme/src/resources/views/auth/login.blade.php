@@ -19,10 +19,10 @@
                         <form id="login-form" action="{{ route('login') }}" method="POST">
                             @csrf
                             <div class="form-row-title">
-                                <h3>شماره موبایل</h3>
+                                <h3>نام کاربری</h3>
                             </div>
                             <div class="form-row with-icon form-group">
-                                <input type="text" name="phone_number" class="input-ui pr-2" placeholder="  شماره موبایل خود را وارد نمایید">
+                                <input type="text" name="username" class="input-ui pr-2" placeholder="  نام کاربری خود را وارد نمایید">
                                 <i class="mdi mdi-account-circle-outline"></i>
                             </div>
                             <div class="form-row-title">

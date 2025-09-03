@@ -13,9 +13,7 @@ use Illuminate\Validation\Rule;
 class LoginWithCodeController extends Controller
 {
     public function create(Request $request)
-
     {
-
         $view = config('front.pages.login-with-code');
 
         if (!$view || option('login_with_code', 'off') == 'off') {
@@ -27,45 +25,117 @@ class LoginWithCodeController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
             'phone_number' => 'required|exists:users,phone_number',
             'captcha' => ['required', 'captcha'],
         ], [
             'phone_number.exists' => 'حساب کاربری با شماره موبایل ' . $request->phone_number . ' وجود ندارد. لطفا ثبت نام کنید'
         ]);
-        // dd($request->phone_number);
 
         $user = User::where('phone_number', $request->phone_number)->first();
 
         PasswordResetLinkController::sendCode($user);
+
 
         return response('success');
     }
 
     public function confirm(Request $request)
     {
-
         $request->validate([
             'phone_number' => 'required|exists:users,phone_number',
+            'verify_code' => 'required',
         ]);
 
-        $user = User::where('phone_number', $request->phone_number)->first();
+        // همه‌ی یوزرهای مرتبط با شماره را بگیر (نه فقط first)
+        $users = User::where('phone_number', $request->phone_number)->get();
         $time = Carbon::now()->subMinutes(15);
 
+        // OTP را برای هرکدام از این user_id ها معتبر بدان
         $request->validate([
-            'verify_code'     => [
-                'required',
-                Rule::exists('one_time_codes', 'code')->where(function ($query) use ($user, $time) {
-                    $query->where('user_id', $user->id)->where('created_at', '>=', $time);
+            'verify_code' => [
+                Rule::exists('one_time_codes', 'code')->where(function ($q) use ($users, $time) {
+                    $q->whereIn('user_id', $users->pluck('id'))
+                        ->where('created_at', '>=', $time);
                 }),
-            ]
+            ],
         ], [
-            'verify_code.exists' => 'کد وارد شده اشتباه است'
+            'verify_code.exists' => 'کد وارد شده اشتباه است یا منقضی شده است.',
         ]);
 
-        Auth::loginUsingId($user->id, true);
+        if ($users->count() === 1) {
+            // تک‌اکانتی: همین‌جا لاگین کن
+            $user = $users->first();
+
+            // فقط در لحظه‌ی لاگین OTP را پاک کن
+            OneTimeCode::where('user_id', $user->id)->delete();
+
+            // اگر گارد خاصی داری اینجا ست کن: Auth::guard('web')->loginUsingId(...)
+            Auth::loginUsingId($user->id, true);
+
+            // یا اگر API/AJAX است: return response('success');
+            return redirect()->intended(route('dashboard'));
+        }
+
+        // چنداکانتی: شماره را در سشن بگذار و بفرست صفحه انتخاب اکانت
+        session()->put('phone_number', $request->phone_number);
+
+        return redirect()->route('front.pages.pick-account');
+    }
+
+
+    public function pickAccount()
+    {
+        $phone = session('phone_number');
+
+        if (!$phone) {
+            return redirect()->route('login')->withErrors([
+                'phone_number' => 'جلسه منقضی شده یا شماره در دسترس نیست.'
+            ]);
+        }
+
+        $users = User::where('phone_number', $phone)->get();
+
+        if ($users->isEmpty()) {
+            return redirect()->route('login')->withErrors([
+                'phone_number' => 'کاربری با این شماره یافت نشد.'
+            ]);
+        }
+
+        return redirect()->route('front.pages.pick-account');
+
+
+    }
+
+    public function pickAccountSubmit(Request $request)
+    {
+        $phone = session('phone_number');
+
+        if (!$phone) {
+            return redirect()->route('login')->withErrors([
+                'phone_number' => 'جلسه منقضی شده است.'
+            ]);
+        }
+
+        $request->validate([
+            'user_id' => [
+                'required',
+                Rule::exists('users', 'id')->where(fn($q) => $q->where('phone_number', $phone)),
+            ],
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+
+        // عملیات بعد لاگین (همونایی که در حالت تک‌کاربر انجام می‌دادی)
+        $user->update(['force_to_password_change' => true]);
         OneTimeCode::where('user_id', $user->id)->delete();
 
-        return response('success');
+        Auth::loginUsingId($user->id, true);
+
+        // پاک کردن شماره از سشن
+        session()->forget('phone_number');
+
+        return redirect()->route('dashboard');
     }
 }

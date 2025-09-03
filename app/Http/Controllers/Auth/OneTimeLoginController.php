@@ -8,6 +8,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,7 @@ class OneTimeLoginController extends Controller
 {
     public function create(Request $request)
     {
-
+        // dd('');
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|exists:users,phone_number'
         ]);
@@ -40,32 +41,47 @@ class OneTimeLoginController extends Controller
 
     public function store(Request $request)
     {
-
         $request->validate([
             'phone_number' => 'required|exists:users,phone_number',
         ]);
 
-        $user = User::where('phone_number', $request->phone_number)->first();
+        $users = User::where('phone_number', $request->phone_number)->get();
+        $usercount = $users->count();
+        $user = $users->first(); 
+
         $time = Carbon::now()->subMinutes(15);
 
         $request->validate([
-            'verify_code'     => [
+            'verify_code' => [
                 'required',
-                Rule::exists('one_time_codes', 'code')->where(function ($query) use ($user, $time) {
-                    $query->where('user_id', $user->id)->where('created_at', '>=', $time);
+                Rule::exists('one_time_codes', 'code')->where(function ($query) use ($users, $time) {
+                    $query->whereIn('user_id', $users->pluck('id'))
+                        ->where('created_at', '>=', $time);
                 }),
             ]
         ], [
             'verify_code.exists' => 'کد وارد شده اشتباه است'
         ]);
 
-        $user->update([
-            'force_to_password_change' => true,
-        ]);
+        // ❌ این دو کار را دیگر اینجا انجام نده؛ فقط در حالت تک‌کاربره انجام می‌دهیم
+        // $user->update(['force_to_password_change' => true]);
+        // OneTimeCode::where('user_id', $user->id)->delete();
 
-        Auth::loginUsingId($user->id, true);
-        OneTimeCode::where('user_id', $user->id)->delete();
+        if ($usercount == 1) {
 
-        return response('success');
+            $user->update([
+                'force_to_password_change' => true,
+            ]);
+            OneTimeCode::where('user_id', $user->id)->delete();
+
+            Auth::loginUsingId($user->id, true);
+
+            return response('success');
+        } else {
+            session()->put('phone_number', $request->phone_number);
+
+            return redirect()->route('auth.pick_account');
+        }
     }
+
 }

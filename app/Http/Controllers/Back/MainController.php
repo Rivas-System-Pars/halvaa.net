@@ -50,7 +50,7 @@ class MainController extends Controller
 
     public function login()
     {
-        return view('back.auth.login');
+             return view('back.auth.login');
     }
 
     public function notifications()
