@@ -1,4 +1,4 @@
-@extends('layouts.auth')
+@extends('front::auth.layouts.master')
 
 @section('content')
 @php
@@ -26,7 +26,7 @@
                 </div>
                 <a href="{{ route('login') }}" class="btn btn-outline-secondary">بازگشت</a>
             @else
-                <form method="POST" action="{{ route('auth.pick_account.submit') }}">
+                <form method="POST" action="">
                     @csrf
 
                     <div class="list-group mb-3">
@@ -38,7 +38,8 @@
                                         {{ $u->username ?? ($u->name ?? trim(($u->first_name ?? '').' '.($u->last_name ?? ''))) ?: 'بدون نام' }}
                                     </div>
                                     <div class="text-muted small">
-                                        ID: {{ $u->id }}
+                                        {{-- @dd($u) --}}
+                                        بایو: {{ $u->bio }}
                                         @if($u->email) • {{ $u->email }} @endif
                                     </div>
                                 </div>
@@ -56,8 +57,6 @@
         </div>
     </div>
 
-    <p class="text-center text-muted small mt-3">
-        اگر حساب اشتباه است، به صفحه ورود برگردید و شماره را دوباره وارد کنید.
-    </p>
+
 </div>
 @endsection

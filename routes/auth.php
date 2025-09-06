@@ -56,9 +56,6 @@ Route::get('/login-with-code', [LoginWithCodeController::class, 'create'])
     ->middleware('guest')
     ->name('login-with-code.request');
 
-Route::get('/pick-account', [LoginWithCodeController::class, 'pickAccount'])
-    ->middleware('guest')
-    ->name('pick-account');
 
 Route::post('/pick-account', [LoginWithCodeController::class, 'pickAccountSubmit'])
     ->middleware('guest')

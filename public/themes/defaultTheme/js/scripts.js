@@ -51,7 +51,7 @@ $.ajaxSetup({
             );
             return;
         } else if (data.status == 500) {
-            toastr.error('خطایی در سرور رخ داده است', 'خطا', {
+            toastr.error(' لطفا مجدد تلاش کنید خطایی در سرور رخ داده است', 'خطا', {
                 positionClass: 'toast-bottom-left',
                 containerId: 'toast-bottom-left'
             });

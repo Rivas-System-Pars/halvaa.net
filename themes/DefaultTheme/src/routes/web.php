@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginWithCodeController;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use themes\DefaultTheme\src\Controllers\FollowController;
@@ -38,6 +39,8 @@ use App\Http\Controllers\Back\RatingController;
 // ------------------ Front Part Routes
 
 Route::group(['as' => 'front.'], function () {
+    Route::get('/pick-account', [LoginWithCodeController::class, 'pickAccount'])->name('pick-account');
+
     // ------------------ MainController
     Route::get('/', [MainController::class, 'index'])->name('index');
     Route::get('/careeropportunities', [CareeropportunitiesController::class, 'index'])->name('careeropportunities.index');
@@ -73,6 +76,7 @@ Route::group(['as' => 'front.'], function () {
     Route::post('product/compare', [ProductController::class, 'similarCompare'])->name('products.similar-compare');
     Route::get('products/{price}/priceChart', [ProductController::class, 'priceChart'])->name('products.priceChart');
     Route::post('products/ratings', [RatingController::class, 'store']);
+
 
 
 
@@ -238,7 +242,7 @@ Route::prefix('memorials')->group(function () {
     Route::get('/{id}', [UserProfileController::class, 'showmemorials']);
     Route::delete('/{id}', [UserProfileController::class, 'destroymemorials']);
 });
- //user comments ----------------------------------------------------------------
+//user comments ----------------------------------------------------------------
 Route::prefix('usercomments')->group(function () {
     Route::get('/user/{target_user}', [UserProfileController::class, 'indexusercomments']);
     Route::post('/user/{target_user}', [UserProfileController::class, 'storeusercomments']);
@@ -251,3 +255,4 @@ Route::prefix('usercomments')->group(function () {
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
+

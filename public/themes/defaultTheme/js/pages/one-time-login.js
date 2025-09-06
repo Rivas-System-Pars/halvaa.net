@@ -23,7 +23,7 @@ $('#one-time-login-form').submit(function(e) {
             type: 'POST',
             data: formData,
             success: function(data) {
-                window.location.href = redirect_url;
+                window.location.href = redirect_url+'/pick-account';
             },
 
             beforeSend: function(xhr) {

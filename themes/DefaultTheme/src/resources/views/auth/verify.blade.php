@@ -53,6 +53,7 @@
 @push('scripts')
     <script>
         var redirect_url = '{{ $redirect_url }}';
+        // var redirect_url2 = {{}}
         var resend_time = {{ $resend_time }};
     </script>
 

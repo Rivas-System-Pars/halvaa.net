@@ -43,6 +43,7 @@ class LoginWithCodeController extends Controller
 
     public function confirm(Request $request)
     {
+        // dd('s');
         $request->validate([
             'phone_number' => 'required|exists:users,phone_number',
             'verify_code' => 'required',
@@ -63,50 +64,49 @@ class LoginWithCodeController extends Controller
         ], [
             'verify_code.exists' => 'کد وارد شده اشتباه است یا منقضی شده است.',
         ]);
+        // dd($users->count());
 
         if ($users->count() === 1) {
             // تک‌اکانتی: همین‌جا لاگین کن
             $user = $users->first();
-
-            // فقط در لحظه‌ی لاگین OTP را پاک کن
+            Auth::loginUsingId($user->id, true);
             OneTimeCode::where('user_id', $user->id)->delete();
 
-            // اگر گارد خاصی داری اینجا ست کن: Auth::guard('web')->loginUsingId(...)
-            Auth::loginUsingId($user->id, true);
-
-            // یا اگر API/AJAX است: return response('success');
-            return redirect()->intended(route('dashboard'));
+            return redirect()->route('front.index');
         }
 
         // چنداکانتی: شماره را در سشن بگذار و بفرست صفحه انتخاب اکانت
         session()->put('phone_number', $request->phone_number);
+        self::pickAccount();
 
-        return redirect()->route('front.pages.pick-account');
+        return redirect()->route('front.pick-account');
     }
 
 
     public function pickAccount()
     {
         $phone = session('phone_number');
-
+    
         if (!$phone) {
             return redirect()->route('login')->withErrors([
                 'phone_number' => 'جلسه منقضی شده یا شماره در دسترس نیست.'
             ]);
         }
-
+    
         $users = User::where('phone_number', $phone)->get();
-
+    
         if ($users->isEmpty()) {
             return redirect()->route('login')->withErrors([
                 'phone_number' => 'کاربری با این شماره یافت نشد.'
             ]);
         }
 
-        return redirect()->route('front.pages.pick-account');
-
-
+        // dd('s');
+    
+        return view('front::auth.pick_account', compact('users'));
+        // return redirect()->route('front.pick-account');
     }
+    
 
     public function pickAccountSubmit(Request $request)
     {
@@ -128,7 +128,7 @@ class LoginWithCodeController extends Controller
         $user = User::findOrFail($request->user_id);
 
         // عملیات بعد لاگین (همونایی که در حالت تک‌کاربر انجام می‌دادی)
-        $user->update(['force_to_password_change' => true]);
+        // $user->update(['force_to_password_change' => true]);
         OneTimeCode::where('user_id', $user->id)->delete();
 
         Auth::loginUsingId($user->id, true);
@@ -136,6 +136,6 @@ class LoginWithCodeController extends Controller
         // پاک کردن شماره از سشن
         session()->forget('phone_number');
 
-        return redirect()->route('dashboard');
+        return redirect()->route('front.index');
     }
 }
